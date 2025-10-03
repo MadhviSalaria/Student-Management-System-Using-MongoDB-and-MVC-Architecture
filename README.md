@@ -1,22 +1,24 @@
-🎓 Student Management System (Node.js + Express + MongoDB)
-📘 Overview
-This project demonstrates a Student Management System built using:
+🎓 Student Management System
 
-Node.js
-Express.js
-MongoDB with Mongoose
-It follows the MVC architecture principles and supports CRUD operations on student data.
+📘 A simple Student Management System built using Node.js, Express, and MongoDB.
+It supports CRUD operations on student data.
 
-Each student has the following properties:
-
-name (String)
-age (Number)
-course (String)
 ⚙️ Features
-Create a new student
-Retrieve all students
-Retrieve student by ID
-Update student information
-Delete student
-🗂️ Folder Structure (Conceptual)
-Even though the system is in one file, the structure follows MVC:
+
+➕ Add a new student
+
+📋 View all students
+
+🔍 Find student by ID
+
+✏️ Update student details
+
+❌ Delete student
+
+🗂️ Student Properties
+
+👤 Name (String)
+
+🎂 Age (Number)
+
+📖 Course (String)
