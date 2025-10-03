@@ -1,119 +1,141 @@
 /*
 ====================================================
-🛒 Product CRUD System (Node.js + MongoDB + Mongoose)
+🎓 Student Management System (Node.js + MongoDB + MVC)
 ====================================================
-Overview:
-- Node.js + Express.js server
-- MongoDB using Mongoose
-- Product model: name, price, category
-- CRUD operations with validation and error handling
+
+📘 Overview:
+This single-file Node.js project demonstrates a
+Student Management System using Express.js and MongoDB.
+It follows MVC principles by including models, controllers,
+and routes in one file for simplicity.
+
+Features:
+- CRUD operations on students
+- Student properties: name, age, course
+- Mongoose handles database interaction
+
+Endpoints:
+POST    /api/students       -> Create student
+GET     /api/students       -> Get all students
+GET     /api/students/:id   -> Get student by ID
+PUT     /api/students/:id   -> Update student
+DELETE  /api/students/:id   -> Delete student
 ====================================================
 */
 
-// 1️⃣ Import dependencies
+// 1️⃣ Import Dependencies
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
+// 2️⃣ Initialize Express App
 const app = express();
-const PORT = 3000;
-
+const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
-// 2️⃣ Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/productDB', {
+// 3️⃣ Connect MongoDB
+mongoose.connect('mongodb://127.0.0.1:27017/studentDB', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB connection error:', err));
+.then(() => console.log('MongoDB Connected'))
+.catch(err => console.error(err));
 
-// 3️⃣ Define Product Model
-const productSchema = new mongoose.Schema({
-    name: { type: String, required: [true, 'Product name is required'] },
-    price: { type: Number, required: [true, 'Product price is required'], min: [0, 'Price cannot be negative'] },
-    category: { type: String, required: [true, 'Product category is required'] }
+// =========================
+// 4️⃣ Student Model
+// =========================
+const studentSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    age: { type: Number, required: true },
+    course: { type: String, required: true }
 }, { timestamps: true });
 
-const Product = mongoose.model('Product', productSchema);
+const Student = mongoose.model('Student', studentSchema);
 
-// 4️⃣ CRUD Routes
+// =========================
+// 5️⃣ Student Controller
+// =========================
+const studentController = {
 
-// Create new product
-app.post('/api/products', async (req, res) => {
-    try {
-        const product = new Product(req.body);
-        const savedProduct = await product.save();
-        res.status(201).json(savedProduct);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+    // Create Student
+    createStudent: async (req, res) => {
+        try {
+            const student = new Student(req.body);
+            const savedStudent = await student.save();
+            res.status(201).json(savedStudent);
+        } catch (err) {
+            res.status(400).json({ error: err.message });
+        }
+    },
+
+    // Get All Students
+    getAllStudents: async (req, res) => {
+        try {
+            const students = await Student.find();
+            res.json(students);
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    },
+
+    // Get Student by ID
+    getStudentById: async (req, res) => {
+        try {
+            const student = await Student.findById(req.params.id);
+            if (!student) return res.status(404).json({ message: 'Student not found' });
+            res.json(student);
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    },
+
+    // Update Student
+    updateStudent: async (req, res) => {
+        try {
+            const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            if (!updatedStudent) return res.status(404).json({ message: 'Student not found' });
+            res.json(updatedStudent);
+        } catch (err) {
+            res.status(400).json({ error: err.message });
+        }
+    },
+
+    // Delete Student
+    deleteStudent: async (req, res) => {
+        try {
+            const deletedStudent = await Student.findByIdAndDelete(req.params.id);
+            if (!deletedStudent) return res.status(404).json({ message: 'Student not found' });
+            res.json({ message: 'Student deleted successfully' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     }
-});
 
-// Get all products
-app.get('/api/products', async (req, res) => {
-    try {
-        const products = await Product.find();
-        res.json(products);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+};
 
-// Get product by ID
-app.get('/api/products/:id', async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ message: 'Product not found' });
-        res.json(product);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+// =========================
+// 6️⃣ Routes
+// =========================
+app.post('/api/students', studentController.createStudent);
+app.get('/api/students', studentController.getAllStudents);
+app.get('/api/students/:id', studentController.getStudentById);
+app.put('/api/students/:id', studentController.updateStudent);
+app.delete('/api/students/:id', studentController.deleteStudent);
 
-// Update product by ID
-app.put('/api/products/:id', async (req, res) => {
-    try {
-        const updatedProduct = await Product.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
-        if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
-        res.json(updatedProduct);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-});
-
-// Delete product by ID
-app.delete('/api/products/:id', async (req, res) => {
-    try {
-        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-        if (!deletedProduct) return res.status(404).json({ message: 'Product not found' });
-        res.json({ message: 'Product deleted successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 5️⃣ Start server
+// =========================
+// 7️⃣ Start Server
+// =========================
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
 
 /*
 ====================================================
-✅ Usage:
+📄 Usage:
 
-1. Start MongoDB locally
-2. Run server: node app.js
-3. Test API endpoints using Postman or curl:
+1. Start MongoDB locally.
+2. Run: node app.js
+3. Use Postman or browser to test endpoints.
 
-POST   /api/products       -> Create product
-GET    /api/products       -> Retrieve all products
-GET    /api/products/:id   -> Get product by ID
-PUT    /api/products/:id   -> Update product
-DELETE /api/products/:id   -> Delete product
 ====================================================
 */
